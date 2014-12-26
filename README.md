@@ -9,3 +9,16 @@ Commit tags:
 - `[docs]` - changes in documentation
 - `[src]`  - changes in source code
 - `[fix]`  - changes related to bugfix
+
+## TODO:
+- Logging
+- Server
+	- HTTP-listener
+	- Processor
+	- Model computation
+	- JSON-encoding
+	- JSON-responces serverw
+- Database connection handler
+- System to handle distributed computation logic
+- System to handle requsts from client
+- Generation of initial data for model
