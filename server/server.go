@@ -60,35 +60,33 @@ func New(addr string, loggingLevel LogLevel) *Server {
 
 func (s *Server) Start() error {
 	s.status = STARTING
-	go func() {
-		if s.logLevel^DEBUG == 0 {
-			s.logger.Printf("Start serving at %s:%s", s.host, s.port)
+	if s.logLevel^DEBUG == 0 {
+		s.logger.Printf("Start serving at %s:%s", s.host, s.port)
+	}
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusServiceUnavailable)
+			s.logger.Fatalf("Can't parse request. Reason: %s", err.Error())
 		}
 
-		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			err := r.ParseForm()
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusServiceUnavailable)
-				s.logger.Fatalf("Can't parse request. Reason: %s", err.Error())
-			}
+		id, err := strconv.Atoi(r.Form.Get("id"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusServiceUnavailable)
+			s.logger.Fatalf("Can't parse request. Reason: %s", err.Error())
+		}
 
-			id, err := strconv.Atoi(r.Form.Get("id"))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusServiceUnavailable)
-				s.logger.Fatalf("Can't parse request. Reason: %s", err.Error())
-			}
+		action := r.Form.Get("action")
 
-			action := r.Form.Get("action")
+		if s.logLevel^DEBUG == 0 {
+			s.logger.Printf("id: %d, action: %s\n", id, action)
+		}
+		fmt.Fprintf(w, "%d", 200)
+	})
 
-			if s.logLevel^DEBUG == 0 {
-				s.logger.Printf("id: %d, action: %s\n", id, action)
-			}
-			fmt.Fprintf(w, "%d", 200)
-		})
-
-		http.ListenAndServe(s.host+":"+s.port, nil)
-	}()
+	http.ListenAndServe(s.host+":"+s.port, nil)
 	s.status = STARTED
 	return nil
 }
