@@ -14,6 +14,8 @@ Commit tags:
 - Logging
 - Server
 	- HTTP-listener
+	- Base controller
+	- Main controllers inherited from base controller
 	- Processor
 	- Model computation
 	- JSON-encoding
