@@ -1,11 +1,10 @@
 package server
 
 import (
-	"fmt"
+	"github.com/sintell/em-server/server/controller/user"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -64,26 +63,15 @@ func (s *Server) Start() error {
 		s.logger.Printf("Start serving at %s:%s", s.host, s.port)
 	}
 
+	if s.logLevel^DEBUG == 0 {
+		s.logger.Printf("Initialising controllers\n")
+	}
+
+	user.New()
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		defer r.Body.Close()
-		err := r.ParseForm()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusServiceUnavailable)
-			s.logger.Fatalf("Can't parse request. Reason: %s", err.Error())
-		}
-
-		id, err := strconv.Atoi(r.Form.Get("id"))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusServiceUnavailable)
-			s.logger.Fatalf("Can't parse request. Reason: %s", err.Error())
-		}
-
-		action := r.Form.Get("action")
-
-		if s.logLevel^DEBUG == 0 {
-			s.logger.Printf("id: %d, action: %s\n", id, action)
-		}
-		fmt.Fprintf(w, "%d", 200)
+		w.Header().Set("Server", "EM-SERVER")
+		w.Write([]byte("Serving [OK]"))
 	})
 
 	http.ListenAndServe(s.host+":"+s.port, nil)
