@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/sintell/em-server/server/controller/user"
+	"github.com/sintell/em-server/server/controller"
 	"log"
 	"net/http"
 	"os"
@@ -41,11 +41,14 @@ func New(addr string, loggingLevel LogLevel) *Server {
 
 	switch {
 	case loggingLevel^DEBUG == 0:
-		prefix = "[DEBUG] [HTTP_SERVER] "
+		prefix = "[DEBUG] "
 	case loggingLevel^VERBOSE == 0:
-		prefix = "[VERBOSE] [HTTP_SERVER] "
+		prefix = "[VERBOSE] "
 	case loggingLevel^ERRORS == 0:
-		prefix = "[ERROR] [HTTP_SERVER] "
+		prefix = "[ERROR] "
+	default:
+		prefix = "[ERROR] "
+		loggingLevel = ERRORS
 	}
 
 	return &Server{
@@ -67,12 +70,18 @@ func (s *Server) Start() error {
 		s.logger.Printf("Initialising controllers\n")
 	}
 
-	user.New()
+	controllers := []controller.Controller{
+		controller.Default(nil, nil),
+		controller.User(),
+	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Server", "EM-SERVER")
-		w.Write([]byte("Serving [OK]"))
-	})
+	for _, controller := range controllers {
+		if s.logLevel^DEBUG == 0 {
+			s.logger.Printf("Initialising controller for [%s]", controller.Resourse())
+		}
+		resourse, handler := controller.Bind()
+		go http.HandleFunc(resourse, handler)
+	}
 
 	http.ListenAndServe(s.host+":"+s.port, nil)
 	s.status = STARTED
