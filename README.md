@@ -13,6 +13,7 @@ Commit tags:
 ## TODO:
 - Logging
 - Server
+	- Flags for configuring
 	- HTTP-listener
 	- Base controller
 	- Main controllers inherited from base controller
