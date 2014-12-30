@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/sintell/em-server/server/controller"
+	"github.com/sintell/em-server/server/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -70,6 +71,8 @@ func (s *Server) Start() error {
 		s.logger.Printf("Initialising controllers\n")
 	}
 
+	logging := middleware.NewLogging(s.logger)
+
 	controllers := []controller.Controller{
 		controller.Default(nil, nil),
 		controller.User(),
@@ -80,7 +83,7 @@ func (s *Server) Start() error {
 			s.logger.Printf("Initialising controller for [%s]", controller.Resourse())
 		}
 		resourse, handler := controller.Bind()
-		go http.HandleFunc(resourse, handler)
+		go http.Handle(resourse, logging(http.HandlerFunc(handler)))
 	}
 
 	http.ListenAndServe(s.host+":"+s.port, nil)

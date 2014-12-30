@@ -35,7 +35,7 @@ func Default(resourse interface{}, handler interface{}) *BaseController {
 		return &BaseController{r, h}
 	} else {
 		return &BaseController{"/", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("OK"))
+			http.Error(w, "Not Found", http.StatusNotFound)
 		}}
 	}
 }
